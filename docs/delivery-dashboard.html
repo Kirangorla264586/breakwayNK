@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-sidebar sidebar-delivery">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>DELIVERY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card" style="max-width: 800px; width: 90%; text-align: left;">
+      <div class="page-header">
+        <a href="login.html" id="logoutBtn" class="btn-logout">Logout</a>
+      </div>
+      <div class="card-header" style="text-align: center;">
+        <h1>Delivery Dashboard</h1>
+        <p>Manage all customer orders.</p>
+      </div>
+
+      <div class="tab-content active" style="margin-top: 20px;">
+          <div class="tab-header">
+            <h3>All Orders</h3>
+            <button id="exportOrdersBtn" class="btn-export">Export CSV</button>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <input type="text" id="orderSearch" placeholder="🔍 Search by order ID or user ID..." style="padding: 10px; background: rgba(255,255,255,0.08);">
+          </div>
+          <div class="table-wrapper">
+            <table id="ordersTable">
+              <thead>
+                <tr><th>Order ID</th><th>User ID</th><th>Cylinder</th><th>Qty</th><th>Address</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="pagination-controls" id="orderPagination">
+            <button class="btn ghost" data-page="prev">Previous</button>
+            <span class="page-info">Page 1</span>
+            <button class="btn ghost" data-page="next">Next</button>
+          </div>
+        </div>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ordersTbody = document.querySelector('#ordersTable tbody');
+      
+      function escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      let currentOrderPage = 1;
+      const limit = 10;
+
+      function renderOrders(ordersToRender) {
+        const pageOrders = ordersToRender.slice().reverse().slice((currentOrderPage - 1) * limit, currentOrderPage * limit);
+        ordersTbody.innerHTML = pageOrders.map(o => `
+            <tr>
+              <td>${escapeHtml(o.id)}</td>
+              <td>${escapeHtml(o.userId)}</td>
+              <td>${escapeHtml(o.cylinderType)}</td>
+              <td>${escapeHtml(o.quantity)}</td>
+              <td>${escapeHtml(o.address)}</td>
+              <td>${o.deliveryDate ? escapeHtml(o.deliveryDate) : '-'}</td>
+              <td>${o.totalAmount ? `₹${o.totalAmount}` : '-'}</td>
+              <td><span class="status">${escapeHtml(o.status)}</span></td>
+              <td>
+                ${
+                  (o.status !== 'delivered' && o.status !== 'cancelled') ? `
+                    <select class="order-status-changer" data-order-id="${o.id}">
+                      <option value="" disabled selected>Change Status</option>
+                      ${o.status === 'placed' ? '<option value="processing">Processing</option>' : ''}
+                      ${o.status === 'processing' ? '<option value="out-for-delivery">Out for Delivery</option>' : ''}
+                      ${o.status === 'out-for-delivery' ? '<option value="delivered">Delivered</option>' : ''}
+                      <option value="cancelled">Cancel</option>
+                    </select>
+                  ` : '-'
+                }
+              </td>
+            </tr>
+        `).join('');
+        attachOrderActionListeners();
+        updatePagination('orderPagination', currentOrderPage, ordersToRender.length);
+      }
+
+      function updatePagination(containerId, page, total) {
+        const container = document.getElementById(containerId);
+        const pageInfo = container.querySelector('.page-info');
+        const prevBtn = container.querySelector('[data-page="prev"]');
+        const nextBtn = container.querySelector('[data-page="next"]');
+        const totalPages = Math.ceil(total / limit);
+        pageInfo.textContent = `Page ${page} of ${totalPages || 1}`;
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= totalPages;
+      }
+
+      function attachOrderActionListeners() {
+        ordersTbody.querySelectorAll('.order-status-changer').forEach(select => {
+          select.addEventListener('change', (e) => {
+            const orderId = e.target.dataset.orderId;
+            const newStatus = e.target.value;
+
+            const orderIndex = allOrders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+              allOrders[orderIndex].status = newStatus;
+              localStorage.setItem('orders', JSON.stringify(allOrders));
+              showToast(`Order ${orderId} status updated to ${newStatus}.`, 'success');
+              renderOrders(allOrders);
+            }
+          });
+        });
+      }
+
+      renderOrders(allOrders);
+
+      document.getElementById('orderSearch').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredOrders = allOrders.filter(o =>
+          (o.id && o.id.toLowerCase().includes(searchTerm)) ||
+          (o.userId && o.userId.toLowerCase().includes(searchTerm))
+        );
+        currentOrderPage = 1;
+        renderOrders(filteredOrders);
+      });
+
+      document.getElementById('orderPagination').addEventListener('click', (e) => {
+        const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
+        const filteredOrders = allOrders.filter(o =>
+          (o.id && o.id.toLowerCase().includes(searchTerm)) ||
+          (o.userId && o.userId.toLowerCase().includes(searchTerm))
+        );
+        if (e.target.dataset.page === 'next') {
+          currentOrderPage++;
+        } else if (e.target.dataset.page === 'prev') {
+          currentOrderPage--;
+        }
+        renderOrders(filteredOrders);
+      });
+
+      function exportToCsv(filename, rows) {
+        if (!rows || !rows.length) { return; }
+        const separator = ',';
+        const keys = Object.keys(rows[0]);
+        const csvContent = keys.join(separator) + '\n' + rows.map(row => { return keys.map(k => { let cell = row[k] === null || row[k] === undefined ? '' : row[k]; cell = cell instanceof Object ? JSON.stringify(cell).replace(/"/g, '""') : String(cell).replace(/"/g, '""'); if (cell.search(/("|,|\n)/g) >= 0) { cell = `"${cell}"`; } return cell; }).join(separator); }).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // Listen for storage changes from other tabs and refresh the UI
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'orders') {
+          console.log(`Detected change in '${e.key}', refreshing delivery dashboard.`);
+          // Re-fetch data and re-apply the current filter by triggering the input event
+          allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+          const searchInput = document.getElementById('orderSearch');
+          searchInput.dispatchEvent(new Event('input'));
+        }
+      });
+
+      document.getElementById('exportOrdersBtn').addEventListener('click', () => {
+        exportToCsv('breakway-orders.csv', allOrders);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1050 @@
+/* 🔥 General Page Styles */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100vh; /* Ensure body takes full viewport height */
+  font-family: "Poppins", sans-serif;
+  color: var(--card-contrast, #fff);
+  background: var(--page-bg, linear-gradient(-45deg, #071022, #0b1220));
+  background-attachment: fixed; /* This is the fix for the scrolling background */
+}
+
+/* Special layout for the login page body */
+.login-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* New Split-Screen Layout */
+.app-sidebar {
+  position: fixed; /* Fix the sidebar to the viewport */
+  left: 0;
+  top: 0;
+  width: 45%;
+  background: var(--sidebar-bg, rgba(0,0,0,0.2));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+  height: 100vh; /* Make it full height */
+  animation: slideInFromLeft 1.2s ease-out;
+}
+
+.app-sidebar h1 {
+  font-size: 1em; /* Reset base size */
+  font-weight: 800;
+  color: var(--card-contrast);
+  line-height: 1.2;
+  letter-spacing: 1px;
+}
+
+.app-sidebar h1 span {
+  font-size: 3.5vw; /* Control size from here */
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Reduced space between logo and text */
+}
+
+.sidebar-logo {
+  width: 120px; /* Increased size */
+  height: auto;
+  flex-shrink: 0; /* Prevent logo from shrinking */
+  filter: invert(1); /* Make black logo white in dark mode (default theme) */
+}
+
+.theme-light .sidebar-logo {
+  filter: none; /* Revert to original black logo in light mode */
+}
+
+.page-content { 
+  margin-left: 45%; /* Push content to the right of the fixed sidebar */
+  width: 55%;
+  display: flex; /* This is required to center the card */
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* This was missing, causing the alignment issue */
+  box-sizing: border-box;
+  height: 100vh; /* Set a fixed height to enable proper internal scrolling */
+  overflow-y: auto; /* Allow this container to scroll, keeping the body's background fixed. */
+  padding-top: 5vh; /* Add some space at the top */
+  padding-bottom: 5vh; /* Add some space at the bottom */
+}
+
+.mobile-menu-toggle {
+  display: none; /* Hidden by default */
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.card {
+  background: var(--card-bg, rgba(0,0,0,0.6));
+  border-radius: 30px;
+  padding: 40px 30px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow, 0 10px 25px rgba(0, 0, 0, 0.4));
+  text-align: center;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 1.2s ease-in-out;
+  margin: 20px 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card Header */
+.card-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: var(--card-contrast, #fff);
+}
+
+.card-header p {
+  font-size: 16px;
+  color: var(--muted, rgba(230,238,248,0.6));
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--card-contrast, #fff);
+  font-size: 16px;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.password-toggle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent-strong);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.form-group select {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="%23fff" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.form-group textarea {
+  resize: vertical;
+  height: 80px;
+}
+
+.form-group option {
+  background: var(--card-bg, #0f172a);
+  color: var(--card-contrast, #e6eef8);
+}
+
+/* Buttons */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 15px 28px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-top: 20px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.pay-btn {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--card-contrast);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pay-btn.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.theme-light .pay-btn {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: var(--text);
+}
+.theme-light .pay-btn.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.btn-submit {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.btn-submit:hover {
+  background-color: var(--accent-strong);
+  transform: scale(1.01);
+}
+
+.btn-dashboard {
+  background-color: #fff;
+  color: #000;
+}
+
+.btn-dashboard:hover {
+  background-color: var(--accent);
+  color: #fff;
+  transform: scale(1.02);
+}
+
+/* Link Text */
+.link-text, .back-link, .logout-link {
+  font-size: 14px;
+  margin-top: 15px;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.link-text a,
+.back-link a,
+.logout-link a {
+  color: var(--accent-strong);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.link-text a:hover,
+.back-link a:hover,
+.logout-link a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.header h1 {
+  font-size: 32px;
+  margin-bottom: 5px;
+}
+.header p {
+  font-size: 18px;
+  color: var(--muted);
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.theme-light .header h1,
+.theme-light .header p {
+  color: var(--text);
+  border-bottom-color: #dee2e6;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.booking-options {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+/* New Stylish Booking Cards */
+.booking-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+  margin-top: 15px;
+}
+
+.book-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px 15px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--card-contrast);
+  transition: transform 0.2s ease-out, background 0.3s;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.book-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
+  transform: none;
+}
+
+.book-card-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.book-card-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.book-card-desc {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Special style for the KYC card */
+.kyc-card {
+  background: linear-gradient(45deg, var(--accent), var(--accent-strong));
+  color: #fff;
+  grid-column: 1 / -1; /* Make it span the full width */
+}
+.kyc-card:hover {
+  background: linear-gradient(45deg, var(--accent-strong), var(--accent));
+}
+
+.profile-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 48px;
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+  min-width: 180px;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.profile-item {
+  display: block;
+  padding: 10px 15px;
+  color: var(--card-contrast);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.order-history .section-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--accent-strong, #ffb347);
+}
+.order-history {
+  padding: 20px;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.2s;
+}
+.order-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.order-item-icon {
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.order-item-details {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-item-info {
+  font-size: 15px;
+}
+.order-item-info strong {
+  display: block;
+}
+.order-item-date {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.order-item-status {
+  text-align: right;
+}
+
+.btn-cancel {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-weight: 600;
+  margin-top: 5px;
+}
+.btn-cancel:hover { background: #dc2626; }
+
+.status {
+  font-weight: 700;
+}
+
+.status-pending { color: #ffe8b5; }
+.status-delivered { color: #90ee90; }
+
+/* Confirmation Page */
+.checkmark {
+  font-size: 60px;
+  color: #90ee90;
+  display: block;
+  margin-bottom: 20px;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); opacity: 0.8; }
+  to { transform: scale(1.1); opacity: 1; }
+}
+
+.summary {
+  background: rgba(255,255,255,0.03);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: left;
+  margin-bottom: 30px;
+}
+
+.summary p {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+  font-size: 16px;
+}
+
+.summary p:last-child {
+  font-size: 20px;
+  font-weight: 700;
+  border-bottom: none; /* This was a typo in your original CSS */
+  color: var(--accent-strong);
+}
+
+/* Track Order */
+.progress-container { margin-top: 20px; }
+.progress-step {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 30px;
+}
+
+.progress-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #555;
+  z-index: 1;
+}
+
+.progress-step.completed::before { background-color: #90ee90; }
+
+.progress-step::after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 20px;
+  width: 2px;
+  height: calc(100% - 20px);
+  background-color: #555;
+  z-index: 0;
+}
+
+.progress-step:last-child::after { display: none; }
+.progress-step.completed::after { background-color: #90ee90; }
+
+.progress-step span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--card-contrast);
+}
+
+.order-separator {
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- Admin Page Specific Styles --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon {
+  font-size: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-top: -5px;
+}
+
+.admin-section table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-section th, .admin-section td {
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-section th {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-section tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.btn-action {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-action.approve { background-color: #10b981; color: white; }
+.btn-action.reject, .btn-action.delete { background-color: #ef4444; color: white; }
+.btn-action.resolve { background-color: #3b82f6; color: white; }
+
+.order-status-changer {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--card-contrast);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 5px;
+}
+
+/* Admin Support Page */
+.ticket-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 15px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ticket-item:hover { background: rgba(255, 255, 255, 0.08); }
+.ticket-info h4 { margin: 0; font-size: 16px; }
+.ticket-meta { font-size: 12px; opacity: 0.7; }
+.ticket-status { font-weight: 700; text-transform: capitalize; }
+.ticket-actions { display: flex; gap: 8px; }
+
+.chat-messages {
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 15px;
+  height: 300px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+}
+.chat-msg { margin-bottom: 12px; }
+.chat-msg.agent { text-align: left; }
+.chat-msg.customer { text-align: right; }
+.chat-bubble {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 16px;
+  max-width: 80%;
+  text-align: left;
+}
+.table-wrapper {
+  overflow-x: auto; /* Enable horizontal scrolling for tables */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+.chat-msg.agent .chat-bubble { background: #374151; }
+.chat-msg.customer .chat-bubble { background: #1d4ed8; }
+.chat-meta { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+
+/* New styles for the unified support dashboard view */
+.ticket-item-full {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.ticket-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 15px;
+  align-items: center;
+}
+.reply-form { display: flex; gap: 8px; margin-top: 8px; }
+
+/* Styles for collapsible ticket details */
+.ticket-details-collapsible {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 15px;
+  padding-top: 15px;
+}
+
+.order-history-section {
+  margin-bottom: 20px;
+}
+.order-history-section .section-title {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+.order-history-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  font-size: 13px;
+  padding: 5px 0;
+  gap: 10px;
+}
+
+/* Light theme overrides for user-side chat */
+.theme-light .chat-msg.agent .chat-bubble {
+  background: #e9ecef;
+  color: #212529;
+}
+.theme-light .chat-msg.customer .chat-bubble {
+  background: #007bff;
+  color: #fff;
+}
+.theme-light .chat-meta {
+  color: #6c757d;
+}
+
+.tabs-container {
+  margin-top: 20px;
+}
+
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 600;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.tab-btn.active {
+  color: var(--accent-strong);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent-strong);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.order-details {
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.order-details p { margin: 5px 0; }
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.btn-export {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--card-contrast);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-export:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* Responsive */
+@media (max-width: 480px) {
+  body { flex-direction: column; }
+  .app-sidebar { display: none !important; } /* Hide sidebar on mobile */
+  .page-content { width: 100%; margin-left: 0; justify-content: center; align-items: center; }
+  .header h1 { font-size: 26px; }
+  .order-item { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 900px) { /* Adjust split for tablets */
+  .app-sidebar { width: 35%; }
+  .page-content { width: 65%; }
+  .app-sidebar h1 { font-size: 3.5vw; }
+}
+/* Toast Notification Styles */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideIn 0.4s forwards;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.toast.success {
+  background: linear-gradient(90deg, #00c853, #64dd17);
+}
+
+.toast.error {
+  background: linear-gradient(90deg, #d32f2f, #f44336);
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* New styles for admin page header and logout button */
+.page-header {
+  width: 100%;
+  max-width: 800px; /* Match the card width */
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--card-contrast);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+
+.pagination-controls .btn:disabled {
+  opacity: 0.4;
+  color: var(--muted);
+}
+/* ---------------------------------------
+   Theme variables (light by default)
+   Add a .theme-dark class on <html> to enable dark theme
+   --------------------------------------- */
+:root{
+  --page-bg: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  --sidebar-bg: rgba(0,0,0,0.2);
+  --text: #e6eef8;
+  --muted: rgba(230,238,248,0.6);
+  --card-bg: rgba(15, 23, 42, 0.6);
+  --card-contrast: #e6eef8;
+  --accent: #10b981;
+  --accent-strong: #34d399;
+  --shadow: 0 8px 20px rgba(2,6,23,0.7);
+}
+
+.theme-light{
+  --page-bg: #f0fdf4; /* A very light green background */
+  --sidebar-bg: #ffffff; /* A solid white for a clean base */
+  --text: #064e3b; /* A deep, readable green for text */
+  --muted: #047857; /* A lighter green for secondary text */
+  --card-bg: #ffffff; /* Solid white card */
+  --card-contrast: #065f46; /* A dark green for headings */
+  --accent: #10b981; /* The primary green accent */
+  --accent-strong: #059669; /* A darker green for hover states */
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Light Mode Sidebar Color Variations --- */
+.theme-light .sidebar-user h1 {
+  color: var(--accent); /* Use the vibrant green for user pages in light mode */
+}
+.theme-light .app-sidebar h1 {
+  color: var(--accent); /* Use the vibrant green for user pages in light mode */
+}
+
+/* Light theme specific overrides for better contrast */
+.theme-light .form-group input,
+.theme-light .form-group select,
+.theme-light .form-group textarea {
+  background-color: #fff;
+  color: var(--text);
+  border: 1px solid #ced4da;
+}
+
+.theme-light .form-group select {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="%23064e3b" d="M7 10l5 5 5-5z"/></svg>');
+}
+.theme-light .form-group option {
+  background: #fff;
+  color: #064e3b;
+}
+
+.theme-light .order-history {
+  border-color: #dee2e6;
+}
+
+.theme-light .order-item {
+  border-color: #e9ecef;
+}
+
+.theme-light .app-sidebar {
+  border-right: 1px solid #e9ecef; /* A more subtle, modern line for light mode */
+}
+
+/* Apply variables to existing selectors */
+body{background:var(--page-bg);color:var(--card-contrast)}
+.card{background:var(--card-bg);box-shadow:var(--shadow)}
+.card-header h1{color:var(--card-contrast)}
+.card-header p{color:var(--muted)}
+.btn-dashboard{background-color:var(--card-contrast);color:var(--card-bg)}
+.link-text a, .back-link a, .logout-link a{color:var(--card-contrast)}
+.order-history h2{color:var(--accent-strong)}
+.summary p{border-bottom-color: rgba(255,255,255,0.08)}
+
+/* Theme toggle button defaults (will be inserted by JS) */
+.theme-toggle{position:fixed;right:18px;bottom:18px;width:48px;height:48px;border-radius:50%;border:0;background:var(--card-bg);color:var(--card-contrast);box-shadow:var(--shadow);cursor:pointer;z-index:1100;font-size:24px;display:flex;justify-content:center;align-items:center;}
+
+/* Reusable back button that follows theme */
+.back-btn{position:absolute;left:12px;top:12px;padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--card-contrast);z-index:1000;cursor:pointer}
+
+/* Validation/error styles */
+.input-error{border:1px solid #fb7185 !important;box-shadow:0 6px 18px rgba(251,113,133,0.08) !important;background:rgba(255,255,255,0.02) !important}
+.error-text{color:#fb7185;font-weight:600;margin-top:8px}
+
+/* --- Datepicker Theme Overrides --- */
+.datepicker-picker {
+  position: absolute; /* Use absolute positioning to appear near the input */
+  z-index: 1200; /* Ensure it's on top of other elements */
+  background-color: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--card-contrast);
+}
+
+.datepicker-picker.active {
+  display: block; /* Show the picker when the 'active' class is added by the JS library */
+}
+
+.datepicker-header .datepicker-controls .btn,
+.datepicker-header .datepicker-controls .btn:hover {
+  color: var(--card-contrast);
+  border: none;
+}
+
+.datepicker-header .datepicker-controls .btn:focus {
+  box-shadow: none;
+}
+
+.datepicker-main .days .day,
+.datepicker-main .days .dow {
+  color: var(--card-contrast);
+}
+
+.theme-light .datepicker-main .days .dow {
+  color: var(--muted);
+}
+
+.datepicker-view .days .day {
+  /* This is a more specific selector to ensure day numbers are visible */
+  color: var(--card-contrast);
+}
+
+.datepicker-main .days .day.disabled,
+.datepicker-main .days .day.prev,
+.datepicker-main .days .day.next {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.datepicker-main .days .day:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.datepicker-main .days .day.selected,
+.datepicker-main .days .day.selected:hover {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* Light theme overrides for datepicker */
+.theme-light .datepicker-picker {
+  border-color: #dee2e6;
+}
+.theme-light .datepicker-main .days .day:hover {
+  background-color: #e9ecef;
+}
+
+
+/* --- Footer Styles --- */
+.footer {
+  width: 100%;
+  max-width: 700px; /* Match the card width on dashboard */
+  text-align: center;
+  padding: 20px 0;
+  margin-top: auto; /* Push footer to the bottom */
+  padding-top: 30px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.footer a {
+  color: var(--accent-strong);
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+.theme-light .footer { border-top-color: #dee2e6; }

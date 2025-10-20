@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard — BREAKWAY GAS</title>  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-section { background: var(--card-bg, #fff); padding: 28px; border-radius: 12px; margin-bottom: 28px; }
+    .admin-section h3 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 8px 12px; border-bottom: 1px solid #eee; text-align: left; }
+  </style>
+</head>
+<body>
+  <div class="app-sidebar sidebar-admin">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>ADMIN</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card" style="max-width: 800px; width: 90%; text-align: left;">
+      <div class="page-header">
+        <a href="#" id="logoutBtn" class="btn-logout">Logout</a>
+      </div>
+      <div class="card-header" style="text-align: center;">
+        <h1>Admin Dashboard</h1>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="userCount">—</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="orderCount">—</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+      </div>
+
+      <div class="tabs-container">
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="users">Manage Users</button>
+          <button class="tab-btn" data-tab="verifications">Manage Verifications</button>
+          <button class="tab-btn" data-tab="orders">Manage Orders</button>
+          <button class="tab-btn" data-tab="agents">Manage Agents</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content active">
+          <div class="tab-header">
+            <h3>All Users</h3>
+            <button id="exportUsersBtn" class="btn-export">Export CSV</button>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <input type="text" id="userSearch" placeholder="🔍 Search by name, email, or ID..." style="padding: 10px; background: rgba(255,255,255,0.08);">
+          </div>
+          <div class="table-wrapper">
+            <table id="usersTable">
+              <thead>
+                <tr><th>Name</th><th>Contact</th><th>KYC Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="pagination-controls" id="userPagination">
+            <button class="btn ghost" data-page="prev">Previous</button>
+            <span class="page-info">Page 1</span>
+            <button class="btn ghost" data-page="next">Next</button>
+          </div>
+        </div>
+
+        <!-- Verifications Tab -->
+        <div id="verifications" class="tab-content">
+          <div class="tab-header">
+            <h3>Pending Verifications</h3>
+            <button id="exportVerificationsBtn" class="btn-export">Export CSV</button>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <input type="text" id="verificationSearch" placeholder="🔍 Search by name, email, or ID..." style="padding: 10px; background: rgba(255,255,255,0.08);">
+          </div>
+          <div class="table-wrapper">
+            <table id="verificationsTable">
+              <thead>
+                <tr><th>Name</th><th>Contact</th><th>KYC Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="pagination-controls" id="verificationPagination">
+            <button class="btn ghost" data-page="prev">Previous</button>
+            <span class="page-info">Page 1</span>
+            <button class="btn ghost" data-page="next">Next</button>
+          </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="orders" class="tab-content">
+          <div class="tab-header">
+            <h3>All Orders</h3>
+            <button id="exportOrdersBtn" class="btn-export">Export CSV</button>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <input type="text" id="orderSearch" placeholder="🔍 Search by order ID or user ID..." style="padding: 10px; background: rgba(255,255,255,0.08);">
+          </div>
+          <div class="table-wrapper">
+            <table id="ordersTable">
+              <thead>
+                <tr><th>Order ID</th><th>User ID</th><th>Cylinder</th><th>Qty</th><th>Address</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="pagination-controls" id="orderPagination">
+            <button class="btn ghost" data-page="prev">Previous</button>
+            <span class="page-info">Page 1</span>
+            <button class="btn ghost" data-page="next">Next</button>
+          </div>
+        </div>
+
+        <!-- Agents Tab -->
+        <div id="agents" class="tab-content">
+          <div class="tab-header">
+            <h3>All Agents</h3>
+            <button id="showCreateAgentFormBtn" class="btn-export">Create New Agent</button>
+          </div>
+
+          <!-- Create Agent Form (hidden by default) -->
+          <div id="createAgentFormContainer" class="admin-section" style="display: none; background: rgba(255,255,255,0.05); margin-bottom: 20px;">
+            <h4>Create a New Agent Account</h4>
+            <form id="createAgentForm">
+              <div class="form-group"><label>Name</label><input type="text" id="agentName" required /></div>
+              <div class="form-group"><label>Email</label><input type="email" id="agentEmail" required /></div>
+              <div class="form-group"><label>Password</label><input type="password" id="agentPassword" required /></div>
+              <div class="form-group">
+                <label>Role</label>
+                <select id="agentRole" required>
+                  <option value="support">Support</option>
+                  <option value="verification">Verification</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-action approve">Save Agent</button>
+                <button type="button" id="cancelCreateAgentBtn" class="btn-action reject">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="agentsTable">
+              <thead><tr><th>Name</th><th>Contact</th><th>Role</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const allUsersTbody = document.querySelector('#usersTable tbody'); // Renamed for clarity
+      const verificationsTbody = document.querySelector('#verificationsTable tbody'); // New tbody
+      const agentsTbody = document.querySelector('#agentsTable tbody');
+      const ordersTbody = document.querySelector('#ordersTable tbody');
+      const userCountEl = document.getElementById('userCount');
+      const orderCountEl = document.getElementById('orderCount');
+
+      function escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      // Fetch all users, but filter out the admins/agents from the list to be managed.
+      const allUsersFromStorage = JSON.parse(localStorage.getItem('users') || '[]');
+      let allAgents = allUsersFromStorage.filter(u => u.role); // Agents list
+      let allUsers = allUsersFromStorage.filter(u => !u.role); // All regular users for 'Manage Users' tab
+      let allVerificationUsers = allUsersFromStorage.filter(u => !u.role && u.kycStatus === 'slot-booked'); // Users for 'Manage Verifications' tab
+
+      let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      let currentUserPage = 1; // For 'Manage Users' tab
+      let currentVerificationPage = 1; // For 'Manage Verifications' tab
+      let currentOrderPage = 1;
+      const limit = 5; // Show 5 items per page
+
+      // The stat should show the count of regular users, not including agents.
+      userCountEl.textContent = allUsers.length;
+      orderCountEl.textContent = allOrders.length;
+
+      function renderAllUsers(usersToRender) { // Renamed from renderUsers
+        const pageUsers = usersToRender.slice((currentUserPage - 1) * limit, currentUserPage * limit);
+        allUsersTbody.innerHTML = pageUsers.map(u => `
+          <tr>
+            <td>
+              ${escapeHtml(u.name)}<br><small>${escapeHtml(u.id)}</small>
+              ${u.kycStatus === 'slot-booked' && u.verificationSlot ? `<div style="font-size:12px; color: var(--accent-strong); margin-top:4px;">Slot: ${escapeHtml(u.verificationSlot.date)} (${escapeHtml(u.verificationSlot.time)})</div>` : ''}
+            </td>
+            <td>${escapeHtml(u.mobile || u.email) || '-'}</td>
+            <td><span class="status status-${u.kycStatus || 'pending'}">${escapeHtml(u.kycStatus || 'pending')}</span></td>
+            <td style="text-align: center;">
+              ${u.id !== sessionStorage.getItem('currentUserId') 
+                ? `<button class="btn-action delete" data-user-id="${u.id}" style="margin-left: 5px;">Delete</button>` 
+                : ''}
+            </td>
+          </tr>
+        `).join('');
+        attachUserActionListeners(); // Renamed
+        updatePagination('userPagination', currentUserPage, usersToRender.length);
+      }
+
+      function renderVerificationUsers(usersToRender) { // New function
+        const pageUsers = usersToRender.slice((currentVerificationPage - 1) * limit, currentVerificationPage * limit);
+        verificationsTbody.innerHTML = pageUsers.map(u => `
+          <tr>
+            <td>
+              ${escapeHtml(u.name)}<br><small>${escapeHtml(u.id)}</small>
+              ${u.kycStatus === 'slot-booked' && u.verificationSlot ? `<div style="font-size:12px; color: var(--accent-strong); margin-top:4px;">Slot: ${escapeHtml(u.verificationSlot.date)} (${escapeHtml(u.verificationSlot.time)})</div>` : ''}
+              ${u.address ? `
+                <div style="font-size:12px; opacity: 0.7; margin-top:4px;">
+                  ${escapeHtml(u.address.street)}, ${escapeHtml(u.address.village)}, ${escapeHtml(u.address.district)}, ${escapeHtml(u.address.state)} - ${escapeHtml(u.address.pincode)}
+                </div>
+              ` : ''}
+            </td>
+            <td>${escapeHtml(u.mobile || u.email) || '-'}</td>
+            <td><span class="status status-${u.kycStatus || 'pending'}">${escapeHtml(u.kycStatus || 'pending')}</span></td>
+            <td>
+              <button class="btn-action approve" data-user-id="${u.id}">Approve</button>
+              <button class="btn-action reject" data-user-id="${u.id}">Reject</button>
+            </td>
+          </tr>
+        `).join('');
+        attachVerificationUserActionListeners(); // New listener
+        updatePagination('verificationPagination', currentVerificationPage, usersToRender.length);
+      }
+
+      function renderAgents() { 
+        const currentAdminId = sessionStorage.getItem('currentUserId');
+        agentsTbody.innerHTML = allAgents.map(a => `
+          <tr>
+            <td>${escapeHtml(a.name)}<br><small>${escapeHtml(a.id)}</small></td>
+            <td>${escapeHtml(a.email || a.mobile)}</td>
+            <td><span class="status">${escapeHtml(a.role)}</span></td>
+            <td>
+              ${a.id !== currentAdminId ? `<button class="btn-action delete" data-agent-id="${a.id}">Delete</button>` : '<em>(You)</em>'}
+            </td>
+          </tr>
+        `).join('');
+        attachAgentActionListeners();
+      }
+
+      function renderOrders(ordersToRender) {
+        const pageOrders = ordersToRender.slice().reverse().slice((currentOrderPage - 1) * limit, currentOrderPage * limit);
+        ordersTbody.innerHTML = pageOrders.map(o => `
+            <tr>
+              <td>${escapeHtml(o.id)}</td>
+              <td>${escapeHtml(o.userId)}</td>
+              <td>${escapeHtml(o.cylinderType)}</td>
+              <td>${escapeHtml(o.quantity)}</td>
+              <td>${escapeHtml(o.address)}</td>
+              <td>${o.deliveryDate ? escapeHtml(o.deliveryDate) : '-'}</td>
+              <td>${o.totalAmount ? `₹${o.totalAmount}` : '-'}</td>
+              <td><span class="status">${escapeHtml(o.status)}</span></td>
+              <td>
+                ${
+                  (o.status !== 'delivered' && o.status !== 'cancelled') ? `
+                    <select class="order-status-changer" data-order-id="${o.id}">
+                      <option value="" disabled selected>Change Status</option>
+                      ${o.status === 'placed' ? '<option value="processing">Processing</option>' : ''}
+                      ${o.status === 'processing' ? '<option value="out-for-delivery">Out for Delivery</option>' : ''}
+                      ${o.status === 'out-for-delivery' ? '<option value="delivered">Delivered</option>' : ''}
+                      <option value="cancelled">Cancel</option>
+                    </select>
+                  ` : '-'
+                }
+              </td>
+            </tr>
+        `).join('');
+        attachOrderActionListeners();
+        updatePagination('orderPagination', currentOrderPage, ordersToRender.length);
+      }
+
+      function updatePagination(containerId, page, total) { 
+        const container = document.getElementById(containerId); 
+        const pageInfo = container.querySelector('.page-info');
+        const prevBtn = container.querySelector('[data-page="prev"]');
+        const nextBtn = container.querySelector('[data-page="next"]');
+        const totalPages = Math.ceil(total / limit);
+        pageInfo.textContent = `Page ${page} of ${totalPages || 1}`;
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= totalPages;
+      }
+
+      function attachUserActionListeners() { // Renamed
+        allUsersTbody.querySelectorAll('.btn-action').forEach(button => { 
+          button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const userId = e.target.dataset.userId;
+
+            if (button.classList.contains('delete')) {
+              if (confirm(`Are you sure you want to permanently delete user ${userId}? This will also delete all their orders.`)) {
+                // Delete user
+                const allUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]');
+                const updatedUsers = allUsersWithAgents.filter(u => u.id !== userId);
+                localStorage.setItem('users', JSON.stringify(updatedUsers));
+
+                // Delete associated orders
+                let currentOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+                const updatedOrders = currentOrders.filter(o => o.userId !== userId);
+                localStorage.setItem('orders', JSON.stringify(updatedOrders));
+                allOrders = updatedOrders; // Update the global variable
+                renderOrders(allOrders); // Re-render orders tab
+
+                showToast('User and their orders have been deleted.', 'success');
+                allUsers = updatedUsers.filter(u => !u.role); // Update global allUsers
+                allVerificationUsers = updatedUsers.filter(u => !u.role && u.kycStatus === 'slot-booked'); // Update global allVerificationUsers
+                
+                // Re-apply current filters and re-render both user tabs to reflect the deletion
+                document.getElementById('userSearch').dispatchEvent(new Event('input'));
+                document.getElementById('verificationSearch').dispatchEvent(new Event('input'));
+              }
+            } else {
+              // Handle approve/reject
+              const action = button.classList.contains('approve') ? 'verified' : 'rejected';
+              const allUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]');
+              const userIndex = allUsersWithAgents.findIndex(u => u.id === userId);
+
+              if (userIndex !== -1) {
+                allUsersWithAgents[userIndex].kycStatus = action;
+                localStorage.setItem('users', JSON.stringify(allUsersWithAgents));
+                showToast(`User ${action}.`, 'success');
+                allUsers = allUsersWithAgents.filter(u => !u.role); // Update global allUsers list
+                allVerificationUsers = allUsersWithAgents.filter(u => !u.role && u.kycStatus === 'slot-booked'); // Update global allVerificationUsers list
+                currentUserPage = 1; // Reset pagination
+
+                // Re-apply current filters and re-render both user tabs to reflect the status change
+                document.getElementById('userSearch').dispatchEvent(new Event('input'));
+                document.getElementById('verificationSearch').dispatchEvent(new Event('input'));
+              }
+            }
+          });
+        });
+      }
+
+      function attachVerificationUserActionListeners() { // New listener function
+        verificationsTbody.querySelectorAll('.btn-action').forEach(button => {
+          button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const userId = e.target.dataset.userId;
+            // Handle approve/reject for verifications
+            const action = button.classList.contains('approve') ? 'verified' : 'rejected';
+            const allUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]'); // Get latest users
+            const userIndex = allUsersWithAgents.findIndex(u => u.id === userId);
+
+              if (userIndex !== -1) {
+                allUsersWithAgents[userIndex].kycStatus = action; 
+                localStorage.setItem('users', JSON.stringify(allUsersWithAgents));
+                showToast(`User ${action}.`, 'success'); // This toast is fine
+                allUsers = allUsersWithAgents.filter(u => !u.role); // Update global allUsers list
+                allVerificationUsers = allUsersWithAgents.filter(u => !u.role && u.kycStatus === 'slot-booked'); // Update global allVerificationUsers list
+                currentVerificationPage = 1; // Reset pagination
+                
+                // After an action, we also need to refresh the "Manage Users" tab to reflect the change.
+                // Re-apply the current search filter for the verifications tab before re-rendering
+                const searchTerm = document.getElementById('verificationSearch').value.toLowerCase();
+                const filteredVerificationUsers = allVerificationUsers.filter(u => (u.name && u.name.toLowerCase().includes(searchTerm)) || (u.email && u.email.toLowerCase().includes(searchTerm)) || (u.id && u.id.toLowerCase().includes(searchTerm)));
+
+                renderVerificationUsers(filteredVerificationUsers); // ONLY re-render the verifications tab with the filtered list
+
+                // Also refresh the main users tab to reflect the status change there too
+                const userSearchTerm = document.getElementById('userSearch').value.toLowerCase();
+                document.getElementById('userSearch').dispatchEvent(new Event('input'));
+              }
+          });
+        });
+      }
+
+      function attachAgentActionListeners() {
+        // Listener for deleting an agent
+        agentsTbody.querySelectorAll('.btn-action.delete').forEach(button => {
+          button.addEventListener('click', (e) => {
+            const agentId = e.target.dataset.agentId;
+            if (confirm(`Are you sure you want to delete agent ${agentId}?`)) {
+              const allUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]');
+              const updatedUsers = allUsersWithAgents.filter(u => u.id !== agentId);
+              localStorage.setItem('users', JSON.stringify(updatedUsers));
+              
+              allAgents = updatedUsers.filter(u => u.role);
+              showToast('Agent deleted successfully.', 'success');
+              renderAgents();
+            }
+          });
+        });
+      }
+
+      // --- Create Agent Form Logic ---
+      const createAgentFormContainer = document.getElementById('createAgentFormContainer');
+      const createAgentForm = document.getElementById('createAgentForm');
+
+      document.getElementById('showCreateAgentFormBtn').addEventListener('click', () => {
+        createAgentFormContainer.style.display = 'block';
+      });
+
+      document.getElementById('cancelCreateAgentBtn').addEventListener('click', () => {
+        createAgentFormContainer.style.display = 'none';
+        createAgentForm.reset();
+      });
+
+      createAgentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('agentName').value;
+        const email = document.getElementById('agentEmail').value;
+        const password = document.getElementById('agentPassword').value;
+        const role = document.getElementById('agentRole').value;
+
+        const allUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // Check if email already exists
+        if (allUsersWithAgents.some(u => u.email === email)) {
+          showToast('An account with this email already exists.', 'error');
+          return;
+        }
+
+        const newAgent = {
+          id: `U-${Date.now()}`,
+          name,
+          email,
+          password, // Storing plain password for simulation
+          role,
+        };
+
+        allUsersWithAgents.push(newAgent);
+        localStorage.setItem('users', JSON.stringify(allUsersWithAgents));
+
+        // Update state and re-render
+        allAgents = allUsersWithAgents.filter(u => u.role);
+        renderAgents();
+
+        // Hide and reset form
+        createAgentFormContainer.style.display = 'none';
+        createAgentForm.reset();
+        showToast('New agent created successfully!', 'success');
+      });
+
+      function attachOrderActionListeners() {
+        ordersTbody.querySelectorAll('.btn-cancel').forEach(button => {
+          button.addEventListener('click', (e) => {
+            const orderId = e.target.dataset.orderId;
+            if (!confirm(`Are you sure you want to cancel order ${orderId}?`)) return;
+
+            const orderIndex = allOrders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+              allOrders[orderIndex].status = 'cancelled';
+              localStorage.setItem('orders', JSON.stringify(allOrders));
+              showToast('Order cancelled.', 'success');
+              renderOrders(allOrders); // Re-render orders
+            }
+          });
+        });
+
+        ordersTbody.querySelectorAll('.order-status-changer').forEach(select => {
+          select.addEventListener('change', (e) => {
+            const orderId = e.target.dataset.orderId;
+            const newStatus = e.target.value;
+
+            const orderIndex = allOrders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+              allOrders[orderIndex].status = newStatus;
+              localStorage.setItem('orders', JSON.stringify(allOrders));
+              showToast(`Order ${orderId} status updated to ${newStatus}.`, 'success');
+              renderOrders(allOrders); // Re-render orders to reflect the change
+            }
+          });
+        });
+      }
+
+      // Initial Render
+      renderAllUsers(allUsers);
+      renderVerificationUsers(allVerificationUsers); // Initial render for new tab
+      renderAgents();
+      renderOrders(allOrders);
+
+      // Search functionality
+      document.getElementById('userSearch').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredUsers = allUsers.filter(u =>
+          (u.name && u.name.toLowerCase().includes(searchTerm)) ||
+          (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+          (u.id && u.id.toLowerCase().includes(searchTerm))
+        );
+        currentUserPage = 1; // Reset page for this tab
+        renderAllUsers(filteredUsers);
+      });
+
+      document.getElementById('verificationSearch').addEventListener('input', (e) => { // New search for verifications
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredUsers = allVerificationUsers.filter(u =>
+          (u.name && u.name.toLowerCase().includes(searchTerm)) ||
+          (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+          (u.id && u.id.toLowerCase().includes(searchTerm))
+        );
+        currentVerificationPage = 1; // Reset page for this tab
+        renderVerificationUsers(filteredUsers);
+      });
+
+      document.getElementById('orderSearch').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredOrders = allOrders.filter(o =>
+          (o.id && o.id.toLowerCase().includes(searchTerm)) ||
+          (o.userId && o.userId.toLowerCase().includes(searchTerm))
+        );
+        currentOrderPage = 1;
+        renderOrders(filteredOrders);
+      });
+
+      // Tab switching functionality
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tabId = button.dataset.tab;
+
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+
+          tabContents.forEach(content => {
+            // Hide all and show active
+            if (content.id === tabId) {
+              content.classList.add('active');
+            } else {
+              content.classList.remove('active');
+            }
+          });
+        });
+      });
+
+      // CSV Export Functionality
+      function exportToCsv(filename, rows) {
+        if (!rows || !rows.length) {
+          return;
+        }
+        const separator = ',';
+        const keys = Object.keys(rows[0]);
+        const csvContent =
+          keys.join(separator) +
+          '\n' +
+          rows.map(row => {
+            return keys.map(k => {
+              let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+              cell = cell instanceof Object ? JSON.stringify(cell).replace(/"/g, '""') : String(cell).replace(/"/g, '""');
+              if (cell.search(/("|,|\n)/g) >= 0) {
+                cell = `"${cell}"`;
+              }
+              return cell;
+            }).join(separator);
+          }).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', filename);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+
+      document.getElementById('exportUsersBtn').addEventListener('click', () => {
+        const usersToExport = allUsers.map(({ password, ...user }) => user); // Don't export passwords
+        exportToCsv('breakway-users.csv', usersToExport);
+      });
+
+      document.getElementById('exportVerificationsBtn').addEventListener('click', () => { // New export button
+        const verificationsToExport = allVerificationUsers.map(({ password, ...user }) => user);
+        exportToCsv('breakway-verifications.csv', verificationsToExport);
+      });
+
+      document.getElementById('exportOrdersBtn').addEventListener('click', () => {
+        exportToCsv('breakway-orders.csv', allOrders);
+      });
+
+      // Pagination functionality
+      document.getElementById('userPagination').addEventListener('click', (e) => {
+        const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+        const filteredUsers = allUsers.filter(u =>
+          (u.name && u.name.toLowerCase().includes(searchTerm)) ||
+          (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+          (u.id && u.id.toLowerCase().includes(searchTerm))
+        );
+        if (e.target.dataset.page === 'next') { // For all users tab
+          currentUserPage++;
+        } else if (e.target.dataset.page === 'prev') {
+          currentUserPage--;
+        }
+        renderAllUsers(filteredUsers);
+      });
+
+      document.getElementById('verificationPagination').addEventListener('click', (e) => { // New pagination for verifications
+        const searchTerm = document.getElementById('verificationSearch').value.toLowerCase();
+        const filteredUsers = allVerificationUsers.filter(u =>
+          (u.name && u.name.toLowerCase().includes(searchTerm)) ||
+          (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+          (u.id && u.id.toLowerCase().includes(searchTerm))
+        );
+        if (e.target.dataset.page === 'next') {
+          currentVerificationPage++;
+        } else if (e.target.dataset.page === 'prev') {
+          currentVerificationPage--;
+        }
+        renderVerificationUsers(filteredUsers);
+      });
+
+      document.getElementById('orderPagination').addEventListener('click', (e) => {
+        const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
+        const filteredOrders = allOrders.filter(o =>
+          (o.id && o.id.toLowerCase().includes(searchTerm)) ||
+          (o.userId && o.userId.toLowerCase().includes(searchTerm))
+        );
+        if (e.target.dataset.page === 'next') {
+          currentOrderPage++;
+        } else if (e.target.dataset.page === 'prev') {
+          currentOrderPage--;
+        }
+        renderOrders(filteredOrders);
+      });
+
+      // Listen for storage changes from other tabs and refresh the UI
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'users' || e.key === 'orders') {
+          console.log(`Detected change in '${e.key}', refreshing admin dashboard data.`);
+          const newAllUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]');
+          const newAllOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+
+          allAgents = newAllUsersWithAgents.filter(u => u.role);
+          allUsers = newAllUsersWithAgents.filter(u => !u.role); // All regular users
+          allVerificationUsers = newAllUsersWithAgents.filter(u => !u.role && u.kycStatus === 'slot-booked'); // Verification users
+          allOrders = newAllOrders;
+
+          // Re-render all sections while respecting current filters
+          document.getElementById('userSearch').dispatchEvent(new Event('input'));
+          document.getElementById('verificationSearch').dispatchEvent(new Event('input')); // Trigger new search
+          document.getElementById('orderSearch').dispatchEvent(new Event('input'));
+          renderAgents(); // Agents list doesn't have search/pagination
+          userCountEl.textContent = allUsers.length;
+          orderCountEl.textContent = allOrders.length;
+
+          // If the verification tab is active, re-render it
+          if (document.querySelector('.tab-btn[data-tab="verifications"]').classList.contains('active')) { renderVerificationUsers(allVerificationUsers); }
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>

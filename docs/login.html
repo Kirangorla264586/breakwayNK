@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | BREAKWAY GAS SUPPLY</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+  <div class="app-sidebar">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>GAS SUPPLY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header">
+        <h1 id="loginTitle">Welcome Back!</h1>
+        <p id="loginSubtitle">Log in to book your next cylinder.</p>
+      </div>
+      <div id="form-container">
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Mobile Number or Email</label>
+            <input type="text" id="username" placeholder="Enter your registered mobile or email" required />
+          </div>
+          <div class="form-group">
+            <label for="password" style="display:flex; justify-content:space-between;">Password <span class="password-toggle">Show</span></label>
+            <input type="password" id="password" placeholder="Enter your password" required />
+          </div>
+          <div class="link-text" style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+            <a href="forgot-password.html">Forgot Password?</a>
+          </div>
+          <button type="submit" class="btn btn-submit">Log In</button>
+        </form>
+      </div>
+      <p class="link-text" id="signupLink">
+        <a href="signup.html">Don't have an account? Sign Up</a>
+      </p>
+      <p class="link-text" id="adminLink" style="font-size: 12px; margin-top: 5px;">
+        <a href="login.html?role=agent">Are you an Agent?</a>
+      </p>
+    </div>
+    <footer class="footer">
+      <p>Admin: GORLA KIRAN(273). &copy; 2025 BREAKWAY GAS SUPPLY.</p>
+      <div>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+      </div>
+    </footer>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script>
+    // This script runs immediately to modify the DOM before main.js initializes.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('role') === 'agent') {
+      document.getElementById('loginTitle').textContent = 'Agent Login';
+      document.getElementById('loginSubtitle').textContent = 'Please enter your agent credentials.';
+      document.getElementById('signupLink').style.display = 'none'; // Hide signup link for admin
+      const forgotPasswordLink = document.querySelector('.link-text a[href="forgot-password.html"]');
+      if (forgotPasswordLink) forgotPasswordLink.parentElement.style.display = 'none';
+      document.getElementById('adminLink').innerHTML = '<a href="login.html">User Login</a>';
+    }
+  </script>
+  <script src="main.js"></script>
+</body>
+</html>

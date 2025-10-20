@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-sidebar sidebar-verification">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>VERIFICATION</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card" style="max-width: 800px; width: 90%; text-align: left">
+      <div class="page-header">
+        <a href="login.html" id="logoutBtn" class="btn-logout">Logout</a>
+      </div>
+      <div class="card-header" style="text-align: center;">
+        <h1>User Verification</h1>
+        <p>Manage all user KYC verification requests.</p>
+      </div>
+
+      <!-- Pending Requests Section -->
+      <div class="admin-section" style="margin-top: 20px;">
+        <div class="tab-header">
+          <h3>Pending Requests</h3>
+          <button id="exportPendingBtn" class="btn-export">Export CSV</button>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <input type="text" id="pendingSearch" placeholder="🔍 Search pending requests..." style="padding: 10px; background: rgba(255,255,255,0.08);">
+        </div>
+        <div class="table-wrapper">
+          <table id="pendingTable">
+            <thead><tr><th>Name</th><th>Contact</th><th>KYC Status</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination-controls" id="pendingPagination">
+          <button class="btn ghost" data-page="prev">Previous</button>
+          <span class="page-info">Page 1</span>
+          <button class="btn ghost" data-page="next">Next</button>
+        </div>
+      </div>
+
+      <!-- Verification History Section -->
+      <div class="admin-section" style="margin-top: 28px;">
+        <div class="tab-header">
+          <h3>Verification History</h3>
+          <button id="exportHistoryBtn" class="btn-export">Export CSV</button>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <input type="text" id="historySearch" placeholder="🔍 Search history..." style="padding: 10px; background: rgba(255,255,255,0.08);">
+        </div>
+        <div class="table-wrapper">
+          <table id="historyTable">
+            <thead><tr><th>Name</th><th>Contact</th><th>KYC Status</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination-controls" id="historyPagination">
+          <button class="btn ghost" data-page="prev">Previous</button>
+          <span class="page-info">Page 1</span>
+          <button class="btn ghost" data-page="next">Next</button>
+        </div>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pendingTbody = document.querySelector('#pendingTable tbody');
+      const historyTbody = document.querySelector('#historyTable tbody');
+      
+      function escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      let allPendingUsers = [];
+      let allHistoryUsers = [];
+      let currentPendingPage = 1;
+      let currentHistoryPage = 1;
+      const limit = 10;
+
+      function loadAndFilterUsers() {
+        const allUsersFromStorage = JSON.parse(localStorage.getItem('users') || '[]');
+        allPendingUsers = allUsersFromStorage.filter(u => !u.role && u.kycStatus === 'slot-booked');
+        allHistoryUsers = allUsersFromStorage.filter(u => !u.role && ['verified', 'rejected'].includes(u.kycStatus));
+      }
+
+      function renderPendingUsers(usersToRender) {
+        const pageUsers = usersToRender.slice((currentPendingPage - 1) * limit, currentPendingPage * limit);
+        pendingTbody.innerHTML = pageUsers.map(u => `
+          <tr>
+            <td>
+              <div>${escapeHtml(u.name)}<br><small>${escapeHtml(u.id)}</small></div>
+              ${u.kycStatus === 'slot-booked' && u.verificationSlot ? `<div style="font-size:12px; color: var(--accent-strong); margin-top:4px;">Slot: ${escapeHtml(u.verificationSlot.date)} (${escapeHtml(u.verificationSlot.time)})</div>` : ''}
+              ${u.address ? `
+                <div style="font-size:12px; opacity: 0.7; margin-top:4px;">
+                  ${escapeHtml(u.address.street)}, ${escapeHtml(u.address.village)}, ${escapeHtml(u.address.district)}, ${escapeHtml(u.address.state)} - ${escapeHtml(u.address.pincode)}
+                </div>
+              ` : ''}
+            </td>
+            <td>${escapeHtml(u.mobile || u.email) || '-'}</td>
+            <td><span class="status status-${u.kycStatus || 'pending'}">${escapeHtml(u.kycStatus || 'pending')}</span></td>
+            <td>
+              <button class="btn-action approve" data-user-id="${u.id}">Approve</button>
+              <button class="btn-action reject" data-user-id="${u.id}">Reject</button>
+            </td>
+          </tr>
+        `).join('');
+        attachPendingActionListeners();
+        updatePagination('pendingPagination', currentPendingPage, usersToRender.length);
+      }
+
+      function renderHistoryUsers(usersToRender) {
+        const pageUsers = usersToRender.slice().reverse().slice((currentHistoryPage - 1) * limit, currentHistoryPage * limit);
+        historyTbody.innerHTML = pageUsers.map(u => `
+          <tr>
+            <td>
+              <div>${escapeHtml(u.name)}<br><small>${escapeHtml(u.id)}</small></div>
+              ${u.address ? `
+                <div style="font-size:12px; opacity: 0.7; margin-top:4px;">
+                  ${escapeHtml(u.address.street)}, ${escapeHtml(u.address.village)}, ${escapeHtml(u.address.district)}, ${escapeHtml(u.address.state)} - ${escapeHtml(u.address.pincode)}
+                </div>
+              ` : ''}
+            </td>
+            <td>${escapeHtml(u.mobile || u.email) || '-'}</td>
+            <td><span class="status status-${u.kycStatus || 'pending'}">${escapeHtml(u.kycStatus || 'pending')}</span></td>
+            <td>-</td>
+          </tr>
+        `).join('');
+        updatePagination('historyPagination', currentHistoryPage, usersToRender.length);
+      }
+
+      function updatePagination(containerId, page, total) {
+        const container = document.getElementById(containerId);
+        const pageInfo = container.querySelector('.page-info');
+        const prevBtn = container.querySelector('[data-page="prev"]');
+        const nextBtn = container.querySelector('[data-page="next"]');
+        const totalPages = Math.ceil(total / limit);
+        pageInfo.textContent = `Page ${page} of ${totalPages || 1}`;
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= totalPages;
+      }
+
+      function attachPendingActionListeners() {
+        pendingTbody.querySelectorAll('.btn-action').forEach(button => {
+          button.addEventListener('click', (e) => {
+            // Only handle approve/reject actions on this dashboard
+            if (!button.classList.contains('approve') && !button.classList.contains('reject')) return;
+
+            const userId = e.target.dataset.userId;
+            const action = e.target.classList.contains('approve') ? 'verified' : 'rejected';
+            
+            const allUsersWithAgents = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = allUsersWithAgents.findIndex(u => u.id === userId);
+            if (userIndex !== -1) {
+              allUsersWithAgents[userIndex].kycStatus = action;
+              localStorage.setItem('users', JSON.stringify(allUsersWithAgents));
+              showToast(`User ${action}.`, 'success');
+              
+              // Re-load and re-render both tables to move the user from pending to history
+              refreshAll();
+            }
+          });
+        });
+      }
+
+      function refreshAll() {
+        loadAndFilterUsers();
+        // Dispatch input events to re-apply current search filters
+        renderPendingUsers(allPendingUsers);
+        renderHistoryUsers(allHistoryUsers);
+      }
+
+      // --- Initial Load ---
+      refreshAll();
+
+      // --- Event Listeners ---
+      document.getElementById('pendingSearch').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allPendingUsers.filter(u => (u.name && u.name.toLowerCase().includes(searchTerm)) || (u.email && u.email.toLowerCase().includes(searchTerm)) || (u.id && u.id.toLowerCase().includes(searchTerm)));
+        currentPendingPage = 1;
+        renderPendingUsers(filtered);
+      });
+
+      document.getElementById('historySearch').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allHistoryUsers.filter(u => (u.name && u.name.toLowerCase().includes(searchTerm)) || (u.email && u.email.toLowerCase().includes(searchTerm)) || (u.id && u.id.toLowerCase().includes(searchTerm)));
+        currentHistoryPage = 1;
+        renderHistoryUsers(filtered);
+      });
+
+      document.getElementById('pendingPagination').addEventListener('click', (e) => {
+        const searchTerm = document.getElementById('pendingSearch').value.toLowerCase();
+        const filtered = allPendingUsers.filter(u => (u.name && u.name.toLowerCase().includes(searchTerm)) || (u.email && u.email.toLowerCase().includes(searchTerm)) || (u.id && u.id.toLowerCase().includes(searchTerm)));
+        if (e.target.dataset.page === 'next') {
+          currentPendingPage++;
+        } else if (e.target.dataset.page === 'prev') {
+          currentPendingPage--;
+        }
+        renderPendingUsers(filtered);
+      });
+
+      document.getElementById('historyPagination').addEventListener('click', (e) => {
+        const searchTerm = document.getElementById('historySearch').value.toLowerCase();
+        const filtered = allHistoryUsers.filter(u => (u.name && u.name.toLowerCase().includes(searchTerm)) || (u.email && u.email.toLowerCase().includes(searchTerm)) || (u.id && u.id.toLowerCase().includes(searchTerm)));
+        if (e.target.dataset.page === 'next') {
+          currentHistoryPage++;
+        } else if (e.target.dataset.page === 'prev') {
+          currentHistoryPage--;
+        }
+        renderHistoryUsers(filtered);
+      });
+
+      // Listen for storage changes from other tabs and refresh the UI
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'users') {
+          console.log(`Detected change in '${e.key}', refreshing verification dashboard.`);
+          refreshAll();
+        }
+      });
+
+      // --- CSV Export ---
+      function exportToCsv(filename, rows) {
+        if (!rows || !rows.length) { return; }
+        const separator = ',';
+        const keys = Object.keys(rows[0]);
+        const csvContent =
+          keys.join(separator) +
+          '\n' +
+          rows.map(row => {
+            return keys.map(k => {
+              let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+              cell = cell instanceof Object ? JSON.stringify(cell).replace(/"/g, '""') : String(cell).replace(/"/g, '""');
+              if (cell.search(/("|,|\n)/g) >= 0) { cell = `"${cell}"`; }
+              return cell;
+            }).join(separator);
+          }).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      document.getElementById('exportPendingBtn').addEventListener('click', () => {
+        const dataToExport = allPendingUsers.map(({ password, ...user }) => user);
+        exportToCsv('breakway-pending-verifications.csv', dataToExport);
+      });
+
+      document.getElementById('exportHistoryBtn').addEventListener('click', () => {
+        const dataToExport = allHistoryUsers.map(({ password, ...user }) => user);
+        exportToCsv('breakway-verification-history.csv', dataToExport);
+      });
+
+    });
+  </script>
+</body>
+</html>

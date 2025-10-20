@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — BREAKWAY GAS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .welcome-header {
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 25px;
+    }
+    .kyc-status-banner {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid #ffc107;
+      color: #ffc107;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .kyc-status-banner.verified {
+      background: rgba(22, 163, 74, 0.1);
+      border-color: #16a34a;
+      color: #16a34a;
+    }
+    .kyc-status-banner.rejected {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .kyc-status-banner a {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-sidebar sidebar-user">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>GAS SUPPLY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card" style="max-width: 700px; width: 90%; text-align: left;">
+      <div class="card-header" style="text-align: center;">
+        <div class="header welcome-header">
+          <div>
+            <h1 id="welcomeMessage">Welcome!</h1>
+            <p>Your one-stop solution for gas cylinder booking.</p>
+          </div>
+          <div class="profile-actions" style="position: relative;">
+            <img id="profilePic" src="https://via.placeholder.com/40" alt="Profile" class="profile-pic" style="cursor:pointer;">
+            <div id="profileMenu" class="profile-menu">
+              <a href="support.html" class="profile-item">Support</a>
+              <a href="edit-profile.html" class="profile-item">Edit Profile</a>
+              <a href="#" class="profile-item btn-logout">Logout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="kycBanner"></div>
+
+      <div class="booking-grid" id="bookingGrid">
+        <!-- Booking cards will be inserted here by JS -->
+        <a href="track-order.html" class="book-card">
+          <div class="book-card-icon">🚚</div>
+          <div class="book-card-name">Track Order</div>
+          <div class="book-card-desc">Live Status</div>
+        </a>
+      </div>
+
+      <div class="order-history" style="margin-top: 30px;">
+        <h2 class="section-title">Recent Orders</h2>
+        <div id="orderList"></div>
+      </div>
+    </div>
+    <footer class="footer">
+      <p>Admin: GORLA KIRAN(273). &copy; 2025 BREAKWAY GAS SUPPLY.</p>
+      <div>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+      </div>
+    </footer>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentUserId = sessionStorage.getItem('currentUserId');
+      if (!currentUserId) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // --- Function to re-render all dynamic parts of the dashboard ---
+      function refreshDashboard() {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const currentUser = users.find(u => u.id === currentUserId);
+        if (!currentUser) { // If user was deleted, log them out
+          sessionStorage.clear();
+          window.location.href = 'login.html';
+          return;
+        }
+        renderKycBanner(currentUser);
+        renderBookingGrid(currentUser.kycStatus === 'verified');
+        renderRecentOrders();
+      }
+
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const currentUser = users.find(u => u.id === currentUserId);
+
+      if (!currentUser) {
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // --- Populate User Info ---
+      document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser.name}!`;
+      if (currentUser.profilePic) {
+        document.getElementById('profilePic').src = currentUser.profilePic;
+      }
+
+      // --- KYC Banner Logic ---
+      function renderKycBanner(user) {
+        const kycBanner = document.getElementById('kycBanner');
+        const kycStatus = user.kycStatus || 'pending';
+        kycBanner.innerHTML = ''; // Clear previous banner
+
+        if (kycStatus === 'pending' || kycStatus === 'rejected') {
+          kycBanner.innerHTML = `
+            <div class="kyc-status-banner ${kycStatus}">
+              <strong>KYC Status: ${kycStatus.toUpperCase()}</strong>
+              <p>Your account is not verified. Please complete KYC to access all features.</p>
+              <a href="verification.html">Complete KYC Now</a>
+            </div>`;
+        } else if (kycStatus === 'slot-booked') {
+          kycBanner.innerHTML = `<div class="kyc-status-banner"><strong>KYC Status: APPOINTMENT BOOKED</strong><p>Our agent will visit you on ${user.verificationSlot.date}.</p></div>`;
+        }
+      }
+
+      // --- Dynamically create the booking card based on KYC status ---
+      function renderBookingGrid(isVerified) {
+        const bookingGrid = document.getElementById('bookingGrid');
+        let bookCylinderCard = bookingGrid.querySelector('.book-cylinder-card');
+        if (!bookCylinderCard) {
+          bookCylinderCard = document.createElement('a');
+          bookCylinderCard.className = 'book-card book-cylinder-card';
+          bookCylinderCard.innerHTML = `<div class="book-card-icon">📦</div><div class="book-card-name">Book Cylinder</div><div class="book-card-desc">Quick & Easy</div>`;
+          bookingGrid.prepend(bookCylinderCard);
+        }
+        bookCylinderCard.href = isVerified ? 'booking.html' : '#';
+        bookCylinderCard.classList.toggle('disabled', !isVerified);
+        bookCylinderCard.title = isVerified ? '' : 'Please complete your KYC verification to book a cylinder.';
+      }
+
+      // --- Recent Orders Logic ---
+      const orderListEl = document.getElementById('orderList');
+      const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const userOrders = allOrders.filter(o => o.userId === currentUserId).slice(-5).reverse(); // Get last 5, newest first
+
+      function renderRecentOrders() {
+        const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        const userOrders = allOrders.filter(o => o.userId === currentUserId).slice(-5).reverse();
+
+        if (userOrders.length > 0) {
+          orderListEl.innerHTML = userOrders.map(o => {
+            const canCancel = ['placed', 'processing'].includes(o.status);
+            return `
+            <div class="order-item">
+              <div class="order-item-icon">📦</div>
+              <div class="order-item-details">
+                <div class="order-item-info">
+                  <strong>${o.cylinderType} (${o.quantity}x)</strong>
+                  <div class="order-item-date">${new Date(o.deliveryDate).toDateString()}</div>
+                </div>
+                <div class="order-item-status">
+                  <span class="status status-${o.status}">${o.status}</span>
+                  ${canCancel ? `<button class="btn-cancel" data-order-id="${o.id}">Cancel</button>` : ''}
+                </div>
+              </div>
+            </div>
+          `}).join('');
+        } else {
+          orderListEl.innerHTML = '<p>You have no recent orders.</p>';
+        }
+      }
+
+      renderKycBanner(currentUser);
+      renderRecentOrders();
+      renderBookingGrid(currentUser.kycStatus === 'verified');
+
+      // --- Profile Menu Toggle ---
+      const profilePic = document.getElementById('profilePic');
+      const profileMenu = document.getElementById('profileMenu');
+      profilePic.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+      });
+      document.addEventListener('click', () => {
+        profileMenu.style.display = 'none'; // Hide when clicking anywhere else
+      });
+
+      // --- Cancel Order Logic ---
+      orderListEl.addEventListener('click', (e) => {
+        if (e.target.classList.contains('btn-cancel')) {
+          const orderId = e.target.dataset.orderId;
+          if (confirm('Are you sure you want to cancel this order?')) {
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const orderIndex = orders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+              orders[orderIndex].status = 'cancelled';
+              localStorage.setItem('orders', JSON.stringify(orders));
+              showToast('Order has been cancelled.', 'success');
+              renderRecentOrders(); // Re-render the list
+            }
+          }
+        }
+      });
+
+      // --- Listen for storage changes from other tabs and refresh the UI ---
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'users' || e.key === 'orders') {
+          console.log(`Detected change in '${e.key}', refreshing dashboard.`);
+          refreshDashboard();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

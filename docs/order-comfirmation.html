@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed | BREAKWAY GAS SUPPLY</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-sidebar">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>GAS SUPPLY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card">
+      <span class="checkmark">✔</span>
+      <div class="card-header">
+        <h1>Thank You for Your Order!</h1>
+        <p>Your payment was successful and your order has been placed securely.</p>
+      </div>
+      <div class="summary">
+        <h2>Order Summary</h2>
+        <p><span>Order ID:</span><strong id="summary-id">(generated on server)</strong></p>
+        <p><span>Cylinder Type:</span><strong id="summary-type">—</strong></p>
+        <p><span>Quantity:</span><strong id="summary-qty">—</strong></p>
+        <p><span>Delivery Date:</span><strong id="summary-date">—</strong></p>
+        <p><span>Payment Method:</span><strong id="summary-payment">—</strong></p>
+        <p><span>Total Amount:</span><strong id="summary-amount">—</strong></p>
+        <p><span>Delivery Address:</span><strong id="summary-address">—</strong></p>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <a href="dashboard.html" class="btn btn-dashboard">Go to Dashboard</a>
+        <a id="gotoTrack" href="track-order.html" class="btn btn-track">Track Order</a>
+      </div>
+    </div>
+    <footer class="footer">
+      <p>Admin: GORLA KIRAN(273). &copy; 2025 BREAKWAY GAS SUPPLY.</p>
+      <div>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let currentOrder = null;
+      function renderOrder(order){
+        if (!order) return;
+        document.getElementById('summary-id').textContent = order.id || '(generated)';
+        document.getElementById('summary-type').textContent = order.cylinderType || '—';
+        document.getElementById('summary-qty').textContent = order.quantity || '—';
+        document.getElementById('summary-date').textContent = order.deliveryDate || '—';
+        document.getElementById('summary-payment').textContent = order.paymentMethod || '—';
+        document.getElementById('summary-amount').textContent = order.totalAmount ? `₹${order.totalAmount}` : '—';
+        document.getElementById('summary-address').textContent = order.address || '—';
+        var goto = document.getElementById('gotoTrack');
+        if (goto && order.id) {
+          goto.href = `track-order.html?orderId=${order.id}`;
+        }
+      }
+      
+      (function(){
+        try{
+          const raw = sessionStorage.getItem('lastOrder');
+          if (raw) { 
+            currentOrder = JSON.parse(raw);
+            renderOrder(currentOrder); 
+            return; 
+          }
+          const s = document.querySelector('.summary');
+          if (s) s.innerHTML = '<p>No recent order found.</p>';
+        }catch(e){ console.warn('could not read order', e); }
+      })();
+
+      // Listen for storage changes
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'orders' && currentOrder) {
+          const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+          const updatedOrder = allOrders.find(o => o.id === currentOrder.id);
+          if (updatedOrder) {
+            currentOrder = updatedOrder;
+            renderOrder(currentOrder);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

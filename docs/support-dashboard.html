@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-sidebar sidebar-support">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>SUPPORT</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card" style="max-width: 900px; width: 95%; text-align: left">
+      <div class="page-header">
+        <a href="login.html" id="logoutBtn" class="btn-logout">Logout</a>
+      </div>
+      <div class="card-header" style="text-align: center;">
+        <h1>Support Desk</h1>
+        <p>Manage all open and resolved customer support tickets.</p>
+      </div>
+      <div id="ticketsList" class="admin-section support-desk">Loading…</div>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    function readTickets(){
+      try{ return JSON.parse(localStorage.getItem('supportTickets')||'[]') || []; }catch(e){ return []; }
+    }
+    function writeTickets(list){ try{ localStorage.setItem('supportTickets', JSON.stringify(list)); }catch(e){ console.warn('could not save tickets', e); } }
+    function renderTickets(){
+      // --- Preserve the state of expanded tickets ---
+      var expandedIds = [];
+      document.querySelectorAll('.ticket-details-collapsible').forEach(function(el) {
+        if (el.style.display === 'block') {
+          expandedIds.push(el.id);
+        }
+      });
+
+      var list = readTickets();
+      var allUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      var allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      var out = '';
+      if (!list.length) { out = '<p class="text-muted">No tickets yet.</p>'; document.getElementById('ticketsList').innerHTML = out; return; }
+      list.slice().reverse().forEach(function(t){
+        var user = allUsers.find(function(u) { return u.id === t.userId; });
+        var userAddress = '';
+        if (user && user.address) {
+          userAddress = [user.address.street, user.address.village, user.address.district, user.address.state].filter(Boolean).join(', ') + (user.address.pincode ? ` - ${user.address.pincode}` : '');
+        }
+
+        out += `<div class="ticket-item-full">`;
+        out += '  <div class="ticket-header">';
+        out += '    <div class="ticket-info"><h4>' + escapeHtml(t.name) + '</h4><div class="ticket-meta">' + escapeHtml(t.contact || '') + '<br>' + escapeHtml(userAddress) + '</div></div>';
+        if (t.status && t.status !== 'open') {
+          out += '    <div class="ticket-status status-' + t.status + '">' + t.status + '</div>';
+        }
+        out += '    <div class="ticket-actions">';
+        if (t.status !== 'resolved') {
+          out += '      <button data-action="toggle-details" data-target="details-' + t.id + '" class="btn-action">View Details</button>';
+          out += '      <button data-action="resolve" data-id="'+t.id+'" class="btn-action resolve">Resolve</button>';
+        }
+        out += '      <button data-action="delete" data-id="'+t.id+'" class="btn-action delete">Delete</button>';
+        out += '    </div>';
+        out += '  </div>';
+        // Only render the details section if the ticket is NOT resolved
+        if (t.status !== 'resolved') {
+          out += '  <div id="details-' + t.id + '" class="ticket-details-collapsible" style="display: none;">';
+          
+          // Add Order History Section
+          var userOrders = allOrders.filter(function(o) { return o.userId === t.userId; }).slice(-5).reverse();
+          out += '    <div class="order-history-section">';
+          out += '      <h5 class="section-title">Recent Orders</h5>';
+          if (userOrders.length > 0) {
+            out += '      <div class="order-history-list">';
+            out += userOrders.map(function(order) {
+              var statusChanger = (order.status !== 'delivered' && order.status !== 'cancelled') ? `
+                <select class="order-status-changer" data-order-id="${order.id}">
+                  <option value="" disabled selected>Change Status</option>
+                  ${order.status === 'placed' ? '<option value="processing">Processing</option>' : ''}
+                  ${order.status === 'processing' ? '<option value="out-for-delivery">Out for Delivery</option>' : ''}
+                  ${order.status === 'out-for-delivery' ? '<option value="delivered">Delivered</option>' : ''}
+                  <option value="cancelled">Cancel</option>
+                </select>` : '-';
+              return '<div class="order-history-item"><span>' + order.id + '</span><span>' + order.cylinderType + '</span><span class="status status-' + order.status + '">' + order.status + '</span><td>' + statusChanger + '</td></div>';
+            }).join('');
+            out += '      </div>';
+          } else {
+            out += '<p class="text-muted" style="font-size: 13px;">No orders found for this user.</p>';
+          }
+          out += '    </div>';
+
+          out += '    <div class="chat-messages" style="margin-top: 10px;">';
+          if (t.thread && t.thread.length > 0) { out += t.thread.map(function(m) { return '<div class="chat-msg '+(m.from==='agent'?'agent':'customer')+'"><div class="chat-bubble">'+escapeHtml(m.text)+'</div><div class="chat-meta">'+(m.from==='agent'?'Support':'Customer')+' · '+(new Date(m.at)).toLocaleString()+'</div></div>'; }).join(''); } else { out += '<p class="text-muted" style="padding: 10px;">No messages yet.</p>'; }
+          out += '    </div>';
+          out += '  <form class="reply-form" data-id="'+t.id+'"><input placeholder="Reply as agent..." autocomplete="off" /><button class="btn btn-submit">Send</button></form>';
+
+          out += '  </div>'; // End of collapsible section
+        }
+        out += `</div>`;
+      });
+      document.getElementById('ticketsList').innerHTML = out;
+      // Attach listeners to the new reply forms
+
+      // --- Restore the state of expanded tickets ---
+      expandedIds.forEach(function(id) {
+        var detailEl = document.getElementById(id);
+        var button = document.querySelector('button[data-target="' + id + '"]');
+        if (detailEl) detailEl.style.display = 'block';
+        if (button) button.textContent = 'Hide Details';
+      });
+
+      attachOrderStatusListeners();
+      attachReplyListeners();
+    }
+    function escapeHtml(s){ if (!s) return ''; return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-action]');
+      if (btn){
+        var id = btn.getAttribute('data-id');
+        var action = btn.getAttribute('data-action');
+        var list = readTickets();
+        var idx = list.findIndex(function(x){ return x.id === id; });
+        if (action === 'resolve' && idx !== -1){ list[idx].status = 'resolved'; writeTickets(list); renderTickets(); }
+        if (action === 'delete' && idx !== -1){ if(confirm('Are you sure?')) { list.splice(idx,1); writeTickets(list); renderTickets(); } }
+        if (action === 'toggle-details') {
+          var targetEl = document.getElementById(btn.dataset.target);
+          if (targetEl) targetEl.style.display = targetEl.style.display === 'none' ? 'block' : 'none';
+          btn.textContent = targetEl.style.display === 'none' ? 'View Details' : 'Hide Details';
+        }
+        return;
+      }
+    });
+
+    // Listen for changes from other tabs
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'supportTickets') {
+        // Re-render the entire list to show new messages
+        renderTickets();
+      }
+    });
+
+    function attachOrderStatusListeners() {
+      document.querySelectorAll('.order-status-changer').forEach(function(select) {
+        select.addEventListener('change', function(e) {
+          var orderId = e.target.dataset.orderId;
+          var newStatus = e.target.value;
+          var allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+          var orderIndex = allOrders.findIndex(function(o) { return o.id === orderId; });
+
+          if (orderIndex !== -1) {
+            allOrders[orderIndex].status = newStatus;
+            localStorage.setItem('orders', JSON.stringify(allOrders));
+            showToast('Order ' + orderId + ' status updated to ' + newStatus + '.', 'success');
+            renderTickets(); // Re-render to show the change
+          }
+        });
+      });
+    }
+
+    function attachReplyListeners() {
+      document.querySelectorAll('.reply-form').forEach(function(form) {
+        // Prevent multiple listeners by removing old ones first
+        form.replaceWith(form.cloneNode(true));
+      });
+      // Add new listeners
+      document.querySelectorAll('.reply-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var id = this.dataset.id;
+          if (!id) return;
+          var input = this.querySelector('input');
+          var text = input.value.trim();
+          if (!text) return;
+          var list = readTickets();
+          var t = list.find(function(x){ return x.id === id; });
+          if (!t) return;
+          t.thread = t.thread || [];
+          t.thread.push({ from:'agent', text: text, at: new Date().toISOString() });
+          writeTickets(list);
+          input.value = '';
+          renderTickets(); // Re-render everything to show the new message
+        });
+      });
+    }
+    document.addEventListener('DOMContentLoaded', renderTickets);
+  </script>
+</body>
+</html>

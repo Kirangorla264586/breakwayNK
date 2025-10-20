@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verification Booked | BREAKWAY GAS SUPPLY</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-sidebar">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>GAS SUPPLY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card">
+      <span class="checkmark">✔</span>
+      <div class="card-header">
+        <h1>Appointment Booked!</h1>
+        <p>Your verification slot has been successfully scheduled. Our agent will visit you at the selected time and address.</p>
+      </div>
+      <div id="slotSummary" class="summary" style="display: none; text-align: left; margin-bottom: 20px;">
+        <h3 style="margin-top:0;">Appointment Details</h3>
+        <p><strong>Date:</strong> <span id="summaryDate"></span></p>
+        <p><strong>Time Slot:</strong> <span id="summaryTime"></span></p>
+      </div>
+      <a href="dashboard.html" class="btn btn-dashboard">Go to Dashboard</a>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentUserId = sessionStorage.getItem('currentUserId');
+      if (!currentUserId) return;
+
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const currentUser = users.find(u => u.id === currentUserId);
+
+      if (currentUser && currentUser.verificationSlot) {
+        const slotSummary = document.getElementById('slotSummary');
+        const summaryDate = document.getElementById('summaryDate');
+        const summaryTime = document.getElementById('summaryTime');
+
+        summaryDate.textContent = currentUser.verificationSlot.date;
+        summaryTime.textContent = currentUser.verificationSlot.time;
+        slotSummary.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

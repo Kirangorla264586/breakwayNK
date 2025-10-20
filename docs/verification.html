@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Verification | BREAKWAY GAS SUPPLY</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-sidebar">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>GAS SUPPLY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header">
+        <h1>Book Home Verification</h1>
+        <p>Please book a convenient time for our agent to visit your address for in-person KYC verification.</p>
+      </div>
+
+      <form id="slotBookingForm">
+        <div class="form-group">
+          <label for="address">Verification Address</label>
+          <div class="address-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <input type="text" id="addressStreet" placeholder="Street Name / House No." required />
+            </div>
+            <div class="form-group">
+              <input type="text" id="addressVillage" placeholder="Village / Town" required />
+            </div>
+            <div class="form-group">
+              <input type="text" id="addressState" placeholder="State" required />
+            </div>
+            <div class="form-group">
+              <input type="text" id="addressDistrict" placeholder="District" required />
+            </div>
+            <div class="form-group">
+              <input type="text" id="addressPincode" placeholder="Pincode" required pattern="\d{6}" />
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="verificationDate">Choose a Date</label>
+          <input type="text" id="verificationDate" placeholder="Select a date" required readonly />
+        </div>
+        <div class="form-group">
+          <label for="verificationTime">Choose a Time Slot</label>
+          <select id="verificationTime" required>
+            <option value="" disabled selected>Select a time</option>
+            <option value="Morning (9am - 12pm)">Morning (9am - 12pm)</option>
+            <option value="Afternoon (1pm - 4pm)">Afternoon (1pm - 4pm)</option>
+            <option value="Evening (5pm - 7pm)">Evening (5pm - 7pm)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-submit">Book Appointment</button>
+      </form>
+    </div>
+    <footer class="footer">
+      <p>Admin: GORLA KIRAN(273). &copy; 2025 BREAKWAY GAS SUPPLY.</p>
+      <div>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+      </div>
+    </footer>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Datepicker
+      const datepickerEl = document.getElementById('verificationDate');
+      if (datepickerEl) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        new Datepicker(datepickerEl, {
+          autohide: true,
+          format: 'yyyy-mm-dd',
+          startDate: tomorrow,
+          container: '.page-content' // This is the definitive fix
+        });
+      }
+
+      document.getElementById('slotBookingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const currentUserId = sessionStorage.getItem('currentUserId');
+        if (!currentUserId) {
+          showToast('You must be logged in to book a slot.', 'error');
+          return;
+        }
+
+        const verificationDate = document.getElementById('verificationDate').value;
+        const verificationTime = document.getElementById('verificationTime').value;
+
+        const address = {
+          street: document.getElementById('addressStreet').value.trim(),
+          village: document.getElementById('addressVillage').value.trim(),
+          state: document.getElementById('addressState').value.trim(),
+          district: document.getElementById('addressDistrict').value.trim(),
+          pincode: document.getElementById('addressPincode').value.trim(),
+        };
+
+        if (!address.street || !address.village || !address.pincode) {
+          showToast('Please fill in all address fields.', 'error');
+          return;
+        }
+
+        // --- Add robust date validation ---
+        const selectedDate = new Date(verificationDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to midnight to compare dates only
+
+        if (!verificationDate || selectedDate <= today) {
+          showToast('You must select a future date for the appointment.', 'error');
+          return;
+        }
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const userIndex = users.findIndex(u => u.id === currentUserId);
+
+        if (userIndex !== -1) {
+          users[userIndex].kycStatus = 'slot-booked';
+          users[userIndex].verificationSlot = { date: verificationDate, time: verificationTime };
+          users[userIndex].address = address; // Save the address
+          localStorage.setItem('users', JSON.stringify(users));
+
+          showToast('Appointment booked! Redirecting to dashboard...', 'success');
+          setTimeout(() => { window.location.href = 'verification-booked.html'; }, 2000);
+        } else {
+          showToast('Could not find your user account.', 'error');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

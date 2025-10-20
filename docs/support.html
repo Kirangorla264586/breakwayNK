@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support Chat — BREAKWAY GAS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Styles moved to style.css for consistency */
+  </style>
+</head>
+<body>
+  <div class="app-sidebar">
+    <div class="sidebar-header">
+      <h1>
+        <span>BREAKWAY</span><br><span>GAS SUPPLY</span>
+      </h1>
+      <img src="gas.png" alt="Breakway Gas Supply Logo" class="sidebar-logo">
+    </div>
+  </div>
+  <div class="page-content" style="position:relative;">
+    <button type="button" id="backBtn" class="back-btn">← Back</button>
+    <div class="card" style="max-width: 700px;">
+      <div class="card-header">
+        <h1>Customer Support</h1>
+        <p>Messages are stored locally and are visible to agents.</p>
+      </div>
+      <div id="messages" class="chat-messages">Loading…</div>
+      <form id="chatForm" style="display:flex;gap:8px;margin-top:12px">
+        <input id="chatInput" placeholder="Type your message..." autocomplete="off" />
+        <button type="submit" class="btn btn-submit" style="width: auto; padding: 12px 20px; margin-top: 0;">Send</button>
+      </form>
+    </div>
+    <footer class="footer">
+      <p>Admin: GORLA KIRAN(273). &copy; 2025 BREAKWAY GAS SUPPLY.</p>
+      <div>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme"></button>
+  <script src="main.js"></script>
+  <script>
+    const readTickets = () => {
+      try { return JSON.parse(localStorage.getItem('supportTickets') || '[]') || []; } catch (e) { return []; }
+    };
+
+    const writeTickets = (list) => {
+      try { localStorage.setItem('supportTickets', JSON.stringify(list)); } catch (e) { console.warn('Could not save tickets', e); }
+    };
+
+    const escapeHtml = (s) => {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    };
+
+    // Finds an existing open ticket for the current user.
+    const findOpenTicket = () => {
+      const currentUserId = sessionStorage.getItem('currentUserId');
+      if (!currentUserId) return null;
+      const tickets = readTickets();
+      return tickets.find(t => t.userId === currentUserId && t.status !== 'resolved');
+    };
+
+    const renderThread = () => {
+      const ticket = findOpenTicket();
+      const messagesEl = document.getElementById('messages');
+      if (!ticket || !ticket.thread || ticket.thread.length === 0) {
+        messagesEl.innerHTML = '<p class="text-muted">No messages yet. Say hi to support!</p>';
+        return;
+      }
+      messagesEl.innerHTML = ticket.thread.map(m => `
+        <div class="chat-msg ${m.from === 'agent' ? 'agent' : 'customer'}">
+          <div class="chat-bubble">${escapeHtml(m.text)}</div>
+          <div class="chat-meta">${m.from === 'agent' ? 'Support' : 'You'} · ${(new Date(m.at)).toLocaleString()}</div>
+        </div>
+      `).join('');
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderThread();
+
+      document.getElementById('backBtn').addEventListener('click', () => history.back());
+
+      document.getElementById('chatForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const currentUserId = sessionStorage.getItem('currentUserId');
+        if (!currentUserId) return;
+
+        let tickets = readTickets();
+        let ticket = tickets.find(t => t.userId === currentUserId && t.status !== 'resolved');
+
+        // If no open ticket exists, create one now.
+        if (!ticket) {
+          const users = JSON.parse(localStorage.getItem('users') || '[]');
+          const currentUser = users.find(u => u.id === currentUserId);
+          if (!currentUser) return; // Should not happen if logged in
+          ticket = { id: `T-${Date.now()}`, userId: currentUser.id, name: currentUser.name, contact: (currentUser.mobile || currentUser.email), status: 'open', createdAt: new Date().toISOString(), thread: [] };
+          tickets.push(ticket);
+        }
+
+        // Ensure thread array exists
+        ticket.thread = ticket.thread || [];
+        ticket.thread.push({ from: 'customer', text: text, at: new Date().toISOString() });
+        writeTickets(tickets);
+        input.value = '';
+        renderThread();
+      });
+
+      // Listen for storage changes (e.g., an agent reply) and refresh the view
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'supportTickets') {
+          renderThread();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
